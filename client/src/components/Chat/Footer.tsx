@@ -45,8 +45,8 @@ export default function Footer({ className }: { className?: string }) {
       ? config.customFooter
       : '[Alnex.ai '  +
         Constants.VERSION +
-        '](https://alnex.ai) - ' +
-        localize('com_ui_latest_footer')
+        '](https://alnex.ai) ' 
+        // localize('com_ui_latest_footer')
   ).split('|');
 
   useEffect(() => {
