@@ -1,10 +1,12 @@
 import { useState, useRef, useCallback, useEffect, useMemo, memo } from 'react';
 import throttle from 'lodash/throttle';
 import { useRecoilValue } from 'recoil';
-import { getConfigDefaults } from 'librechat-data-provider';
+import { getConfigDefaults, SystemRoles } from 'librechat-data-provider';
 import { ResizablePanel, ResizablePanelGroup, useMediaQuery } from '@librechat/client';
 import type { ImperativePanelHandle } from 'react-resizable-panels';
 import { useGetStartupConfig } from '~/data-provider';
+import { useAuthContext } from '~/hooks';
+import { useLocalStorage } from '~/hooks';
 import ArtifactsPanel from './ArtifactsPanel';
 import { normalizeLayout } from '~/utils';
 import SidePanel from './SidePanel';
@@ -46,6 +48,11 @@ const SidePanelGroup = memo(
 
     const isSmallScreen = useMediaQuery('(max-width: 767px)');
     const hideSidePanel = useRecoilValue(store.hideSidePanel);
+    const { user } = useAuthContext();
+    const [newUser] = useLocalStorage('newUser', true);
+
+    // If the signed-in user is a normal USER role or is a 'newUser', hide the right side panel.
+    const forceHideBecauseUserOrNew = !!newUser || (user?.role === SystemRoles.USER);
 
     const calculateLayout = useCallback(() => {
       if (artifacts == null) {
@@ -127,7 +134,7 @@ const SidePanelGroup = memo(
             />
           )}
 
-          {!hideSidePanel && interfaceConfig.sidePanel === true && (
+          {!hideSidePanel && interfaceConfig.sidePanel === true && !forceHideBecauseUserOrNew && (
             <SidePanel
               panelRef={panelRef}
               minSize={minSize}
@@ -147,7 +154,7 @@ const SidePanelGroup = memo(
         {artifacts != null && isSmallScreen && (
           <div className="fixed inset-0 z-[100]">{artifacts}</div>
         )}
-        {!hideSidePanel && interfaceConfig.sidePanel === true && (
+        {!hideSidePanel && interfaceConfig.sidePanel === true && !forceHideBecauseUserOrNew && (
           <button
             aria-label="Close right side panel"
             className={`nav-mask ${!isCollapsed ? 'active' : ''}`}

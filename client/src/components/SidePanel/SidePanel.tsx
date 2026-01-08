@@ -1,11 +1,11 @@
 import { useState, useCallback, useMemo, memo } from 'react';
-import { getEndpointField } from 'librechat-data-provider';
+import { getEndpointField, SystemRoles } from 'librechat-data-provider';
 import { useUserKeyQuery } from 'librechat-data-provider/react-query';
 import { ResizableHandleAlt, ResizablePanel, useMediaQuery } from '@librechat/client';
 import type { TEndpointsConfig, TInterfaceConfig } from 'librechat-data-provider';
 import type { ImperativePanelHandle } from 'react-resizable-panels';
 import useSideNavLinks from '~/hooks/Nav/useSideNavLinks';
-import { useLocalStorage, useLocalize } from '~/hooks';
+import { useLocalStorage, useLocalize, useAuthContext } from '~/hooks';
 import { useGetEndpointsQuery } from '~/data-provider';
 import NavToggle from '~/components/Nav/NavToggle';
 import { useSidePanelContext } from '~/Providers';
@@ -89,6 +89,12 @@ const SidePanel = ({
     interfaceConfig,
     endpointsConfig,
   });
+
+  const { user } = useAuthContext();
+
+  if (newUser || user?.role === SystemRoles.USER) {
+    return null;
+  }
 
   const toggleNavVisible = useCallback(() => {
     if (newUser) {
