@@ -1,0 +1,28 @@
+# Use the official working LibreChat image
+FROM ghcr.io/danny-avila/librechat-dev-api:latest
+
+USER root
+
+# Copy your custom branding files
+COPY --chown=node:node ./images /app/client/public/images
+
+# Fix permissions for logs directory
+RUN mkdir -p /app/logs && chown -R node:node /app/logs && chmod -R 755 /app/logs
+RUN mkdir -p /app/uploads && chown -R node:node /app/uploads && chmod -R 755 /app/uploads
+
+# Replace LibreChat with Alnex.ai in index.html only
+RUN sed -i 's/<title>LibreChat<\/title>/<title>Alnex.ai<\/title>/g' /app/client/dist/index.html && \
+    sed -i 's/"LibreChat"/"Alnex.ai"/g' /app/client/dist/index.html && \
+    sed -i "s/'LibreChat'/'Alnex.ai'/g" /app/client/dist/index.html
+
+# Also try to replace in manifest.json if it exists (won't fail if it doesn't)
+RUN if [ -f /app/client/dist/manifest.json ]; then \
+      sed -i 's/"name": "LibreChat"/"name": "Alnex.ai"/g' /app/client/dist/manifest.json && \
+      sed -i 's/"short_name": "LibreChat"/"short_name": "Alnex.ai"/g' /app/client/dist/manifest.json; \
+    fi
+
+USER node
+
+WORKDIR /app
+
+CMD ["npm", "run", "backend"]
